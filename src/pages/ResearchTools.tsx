@@ -34,7 +34,7 @@ const tools = [
     id: 'sector-momentum',
     name: 'Sector Momentum',
     description: 'Track sector rotation and momentum across the market. Identify which sectors are leading and lagging.',
-    url: 'https://marketintelligenceengine.vercel.app/tools',
+    url: 'https://archiehehe.shinyapps.io/SectorMomentumTracker/',
     icon: BarChart3,
     status: 'Live' as const,
   },

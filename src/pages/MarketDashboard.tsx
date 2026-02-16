@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, BarChart3, Flame, Newspaper } from 'lucide-react';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 function TradingViewWidget({ config, height = 400 }: { config: Record<string, unknown>; height?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +41,7 @@ const tickerTapeConfig = {
 const marketOverviewConfig = {
   widgetType: 'market-overview',
   colorTheme: 'dark',
-  dateRange: '12M',
+  dateRange: '1D',
   showChart: true,
   locale: 'en',
   width: '100%',
@@ -93,7 +94,7 @@ const marketOverviewConfig = {
 const topMoversConfig = {
   widgetType: 'hotlists',
   colorTheme: 'dark',
-  dateRange: '12M',
+  dateRange: '1D',
   exchange: 'US',
   showChart: true,
   locale: 'en',
@@ -152,7 +153,10 @@ export default function MarketDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Market Dashboard</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            Market Dashboard
+            <InfoTooltip content="Real-time market data powered by TradingView. Switch tabs to view market overview, heatmaps, top movers, and news." />
+          </h1>
           <p className="text-muted-foreground">Real-time market data and analysis</p>
         </div>
         <div className="flex items-center gap-2">
@@ -161,7 +165,6 @@ export default function MarketDashboard() {
         </div>
       </div>
 
-      {/* Ticker Tape */}
       <Card className="overflow-hidden">
         <TradingViewWidget config={tickerTapeConfig} height={50} />
       </Card>
@@ -197,7 +200,7 @@ export default function MarketDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Flame className="h-5 w-5" /> Top Movers ($5B+)
+                  <Flame className="h-5 w-5" /> Top Movers
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -210,17 +213,13 @@ export default function MarketDashboard() {
         <TabsContent value="heatmap">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>S&P 500 Heatmap</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>S&P 500 Heatmap</CardTitle></CardHeader>
               <CardContent>
                 <TradingViewWidget config={heatmapConfig} height={600} />
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle>Stock Screener</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Stock Screener</CardTitle></CardHeader>
               <CardContent>
                 <TradingViewWidget config={screenerConfig} height={600} />
               </CardContent>
@@ -230,9 +229,7 @@ export default function MarketDashboard() {
 
         <TabsContent value="movers">
           <Card>
-            <CardHeader>
-              <CardTitle>Top Movers</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Top Movers</CardTitle></CardHeader>
             <CardContent>
               <TradingViewWidget config={topMoversConfig} height={600} />
             </CardContent>
@@ -241,9 +238,7 @@ export default function MarketDashboard() {
 
         <TabsContent value="news">
           <Card>
-            <CardHeader>
-              <CardTitle>Market News</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Market News</CardTitle></CardHeader>
             <CardContent>
               <TradingViewWidget config={newsConfig} height={600} />
             </CardContent>
