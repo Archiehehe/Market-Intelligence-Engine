@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Bot, User, Sparkles, Loader2, Paperclip, X, FileSpreadsheet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { InfoTooltip } from '@/components/InfoTooltip';
 import ReactMarkdown from 'react-markdown';
-import { supabase } from '@/integrations/supabase/client';
+import * as XLSX from 'xlsx';
 
 interface Message {
   id: string;
@@ -24,11 +26,13 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'assistant', content: "I'm your narrative intelligence assistant. Ask me about market beliefs, narrative conflicts, portfolio exposure, or what could break a thesis. I help you understand *why* markets move." }
+    { id: '1', role: 'assistant', content: "I'm your narrative intelligence assistant. Ask me about market beliefs, narrative conflicts, portfolio exposure, or what could break a thesis. You can also **upload a portfolio file** (CSV/XLSX) and I'll analyze its narrative exposure." }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; data: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -36,11 +40,73 @@ export default function Chat() {
     }
   }, [messages]);
 
+  const parsePortfolioFile = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          let rows: string[][] = [];
+
+          if (file.name.endsWith('.csv')) {
+            const text = data as string;
+            rows = text.split('\n').map(row => row.split(',').map(c => c.trim().replace(/"/g, '')));
+          } else {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+          }
+
+          // Format as readable text for AI context
+          const formatted = rows
+            .filter(row => row.some(cell => cell && String(cell).trim()))
+            .map(row => row.join(' | '))
+            .join('\n');
+
+          resolve(`Portfolio file "${file.name}":\n${formatted}`);
+        } catch {
+          reject(new Error('Failed to parse portfolio file'));
+        }
+      };
+      if (file.name.endsWith('.csv')) {
+        reader.readAsText(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }, []);
+
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const parsed = await parsePortfolioFile(file);
+      setAttachedFile({ name: file.name, data: parsed });
+    } catch {
+      setAttachedFile(null);
+    }
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [parsePortfolioFile]);
+
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input };
-    setMessages(prev => [...prev, userMsg]);
+    if ((!input.trim() && !attachedFile) || isLoading) return;
+
+    let userContent = input.trim();
+    if (attachedFile) {
+      userContent = `${userContent ? userContent + '\n\n' : ''}[Attached Portfolio]\n${attachedFile.data}`;
+    }
+
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: userContent };
+    // Display message without the raw file data
+    const displayContent = attachedFile
+      ? `${input.trim()}${input.trim() ? '\n\n' : ''}📎 ${attachedFile.name}`
+      : input.trim();
+    const displayMsg: Message = { id: userMsg.id, role: 'user', content: displayContent };
+
+    setMessages(prev => [...prev, displayMsg]);
     setInput('');
+    setAttachedFile(null);
     setIsLoading(true);
 
     let assistantSoFar = '';
@@ -120,8 +186,9 @@ export default function Chat() {
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Sparkles className="h-8 w-8 text-primary" />
           AI Intelligence
+          <InfoTooltip content="Chat with AI about market narratives, portfolio exposure, and belief conflicts. Upload a CSV/XLSX portfolio file and the AI will analyze its narrative exposure." />
         </h1>
-        <p className="text-muted-foreground">Explore market narratives with AI</p>
+        <p className="text-muted-foreground">Explore market narratives with AI — upload portfolio files for analysis</p>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden">
@@ -151,7 +218,16 @@ export default function Chat() {
           </div>
         </ScrollArea>
 
-        <CardContent className="border-t pt-4 space-y-4">
+        <CardContent className="border-t pt-4 space-y-3">
+          {attachedFile && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+              <FileSpreadsheet className="h-4 w-4 text-primary shrink-0" />
+              <span className="truncate">{attachedFile.name}</span>
+              <button onClick={() => setAttachedFile(null)} className="ml-auto shrink-0 hover:bg-accent rounded p-0.5">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             {suggestions.map(s => (
               <Button key={s} variant="outline" size="sm" onClick={() => setInput(s)} className="text-xs">
@@ -160,14 +236,24 @@ export default function Chat() {
             ))}
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()}>
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
             <Input
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder="Ask about narratives, beliefs, or your portfolio..."
+              placeholder="Ask about narratives, beliefs, or attach a portfolio..."
               disabled={isLoading}
             />
-            <Button onClick={handleSend} disabled={isLoading}>
+            <Button onClick={handleSend} disabled={isLoading || (!input.trim() && !attachedFile)}>
               <Send className="h-4 w-4" />
             </Button>
           </div>
