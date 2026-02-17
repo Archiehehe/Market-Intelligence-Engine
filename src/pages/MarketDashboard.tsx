@@ -25,11 +25,14 @@ function TradingViewWidget({ config, height = 400 }: { config: Record<string, un
 const tickerTapeConfig = {
   widgetType: 'ticker-tape',
   symbols: [
-    { proName: 'FOREXCOM:SPXUSD', title: 'S&P 500' },
-    { proName: 'FOREXCOM:NSXUSD', title: 'US 100' },
-    { proName: 'FX_IDC:EURUSD', title: 'EUR to USD' },
+    { proName: 'AMEX:SPY', title: 'S&P 500' },
+    { proName: 'NASDAQ:QQQ', title: 'Nasdaq 100' },
+    { proName: 'AMEX:DIA', title: 'Dow Jones' },
+    { proName: 'AMEX:IWM', title: 'Russell 2000' },
     { proName: 'BITSTAMP:BTCUSD', title: 'Bitcoin' },
     { proName: 'BITSTAMP:ETHUSD', title: 'Ethereum' },
+    { proName: 'COMEX:GC1!', title: 'Gold' },
+    { proName: 'NYMEX:CL1!', title: 'Crude Oil' },
   ],
   showSymbolLogo: true,
   isTransparent: true,
@@ -53,40 +56,46 @@ const marketOverviewConfig = {
     {
       title: 'Indices',
       symbols: [
-        { s: 'FOREXCOM:SPXUSD', d: 'S&P 500' },
-        { s: 'FOREXCOM:NSXUSD', d: 'US 100' },
-        { s: 'FOREXCOM:DJI', d: 'Dow Jones' },
-        { s: 'INDEX:NKY', d: 'Nikkei 225' },
+        { s: 'AMEX:SPY', d: 'S&P 500 ETF' },
+        { s: 'NASDAQ:QQQ', d: 'Nasdaq 100 ETF' },
+        { s: 'AMEX:DIA', d: 'Dow Jones ETF' },
+        { s: 'AMEX:IWM', d: 'Russell 2000 ETF' },
+        { s: 'AMEX:EFA', d: 'Intl Developed' },
       ],
       originalTitle: 'Indices',
     },
     {
-      title: 'Futures',
+      title: 'Tech',
       symbols: [
-        { s: 'CME_MINI:ES1!', d: 'S&P 500' },
-        { s: 'CME_MINI:NQ1!', d: 'Nasdaq 100' },
+        { s: 'NASDAQ:AAPL', d: 'Apple' },
+        { s: 'NASDAQ:MSFT', d: 'Microsoft' },
+        { s: 'NASDAQ:NVDA', d: 'NVIDIA' },
+        { s: 'NASDAQ:GOOGL', d: 'Alphabet' },
+        { s: 'NASDAQ:AMZN', d: 'Amazon' },
+        { s: 'NASDAQ:META', d: 'Meta' },
+      ],
+      originalTitle: 'Tech',
+    },
+    {
+      title: 'Sectors',
+      symbols: [
+        { s: 'AMEX:XLF', d: 'Financials' },
+        { s: 'AMEX:XLE', d: 'Energy' },
+        { s: 'AMEX:XLK', d: 'Technology' },
+        { s: 'AMEX:XLV', d: 'Healthcare' },
+        { s: 'AMEX:XLI', d: 'Industrials' },
+      ],
+      originalTitle: 'Sectors',
+    },
+    {
+      title: 'Commodities',
+      symbols: [
         { s: 'COMEX:GC1!', d: 'Gold' },
         { s: 'NYMEX:CL1!', d: 'Crude Oil' },
+        { s: 'COMEX:SI1!', d: 'Silver' },
+        { s: 'NYMEX:NG1!', d: 'Natural Gas' },
       ],
-      originalTitle: 'Futures',
-    },
-    {
-      title: 'Bonds',
-      symbols: [
-        { s: 'CBOT:ZB1!', d: 'T-Bond' },
-        { s: 'CBOT:UB1!', d: 'Ultra T-Bond' },
-        { s: 'EUREX:FGBL1!', d: 'Euro Bund' },
-      ],
-      originalTitle: 'Bonds',
-    },
-    {
-      title: 'Forex',
-      symbols: [
-        { s: 'FX:EURUSD', d: 'EUR to USD' },
-        { s: 'FX:GBPUSD', d: 'GBP to USD' },
-        { s: 'FX:USDJPY', d: 'USD to JPY' },
-      ],
-      originalTitle: 'Forex',
+      originalTitle: 'Commodities',
     },
   ],
 };
@@ -155,7 +164,7 @@ export default function MarketDashboard() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             Market Dashboard
-            <InfoTooltip content="Real-time market data powered by TradingView. Switch tabs to view market overview, heatmaps, top movers, and news." />
+            <InfoTooltip content="Real-time market data powered by TradingView. Uses real ETFs and stocks — not CFDs or forex derivatives." />
           </h1>
           <p className="text-muted-foreground">Real-time market data and analysis</p>
         </div>
@@ -175,71 +184,54 @@ export default function MarketDashboard() {
             <TrendingUp className="h-4 w-4" /> Market Overview
           </TabsTrigger>
           <TabsTrigger value="heatmap" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" /> Market HeatMap
+            <BarChart3 className="h-4 w-4" /> Heatmap
           </TabsTrigger>
           <TabsTrigger value="movers" className="flex items-center gap-2">
             <Flame className="h-4 w-4" /> Top Movers
           </TabsTrigger>
+          <TabsTrigger value="screener" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" /> Screener
+          </TabsTrigger>
           <TabsTrigger value="news" className="flex items-center gap-2">
-            <Newspaper className="h-4 w-4" /> Market News
+            <Newspaper className="h-4 w-4" /> News
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" /> Market Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TradingViewWidget config={marketOverviewConfig} height={500} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Flame className="h-5 w-5" /> Top Movers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TradingViewWidget config={topMoversConfig} height={500} />
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <TradingViewWidget config={marketOverviewConfig} height={550} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="heatmap">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader><CardTitle>S&P 500 Heatmap</CardTitle></CardHeader>
-              <CardContent>
-                <TradingViewWidget config={heatmapConfig} height={600} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle>Stock Screener</CardTitle></CardHeader>
-              <CardContent>
-                <TradingViewWidget config={screenerConfig} height={600} />
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <TradingViewWidget config={heatmapConfig} height={600} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="movers">
           <Card>
-            <CardHeader><CardTitle>Top Movers</CardTitle></CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <TradingViewWidget config={topMoversConfig} height={600} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="screener">
+          <Card>
+            <CardContent className="pt-6">
+              <TradingViewWidget config={screenerConfig} height={600} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="news">
           <Card>
-            <CardHeader><CardTitle>Market News</CardTitle></CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <TradingViewWidget config={newsConfig} height={600} />
             </CardContent>
           </Card>
