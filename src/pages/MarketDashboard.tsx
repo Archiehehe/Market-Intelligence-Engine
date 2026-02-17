@@ -51,21 +51,21 @@ const marketOverviewConfig = {
   height: '100%',
   isTransparent: true,
   showSymbolLogo: true,
-  showFloatingTooltip: false,
+  showFloatingTooltip: true,
   tabs: [
     {
       title: 'Indices',
       symbols: [
-        { s: 'AMEX:SPY', d: 'S&P 500 ETF' },
-        { s: 'NASDAQ:QQQ', d: 'Nasdaq 100 ETF' },
-        { s: 'AMEX:DIA', d: 'Dow Jones ETF' },
-        { s: 'AMEX:IWM', d: 'Russell 2000 ETF' },
-        { s: 'AMEX:EFA', d: 'Intl Developed' },
+        { s: 'FOREXCOM:SPXUSD', d: 'S&P 500' },
+        { s: 'FOREXCOM:NSXUSD', d: 'Nasdaq 100' },
+        { s: 'FOREXCOM:DJI', d: 'Dow Jones' },
+        { s: 'INDEX:RUT', d: 'Russell 2000' },
+        { s: 'INDEX:VIX', d: 'VIX' },
       ],
       originalTitle: 'Indices',
     },
     {
-      title: 'Tech',
+      title: 'Mega-Cap Tech',
       symbols: [
         { s: 'NASDAQ:AAPL', d: 'Apple' },
         { s: 'NASDAQ:MSFT', d: 'Microsoft' },
@@ -74,10 +74,10 @@ const marketOverviewConfig = {
         { s: 'NASDAQ:AMZN', d: 'Amazon' },
         { s: 'NASDAQ:META', d: 'Meta' },
       ],
-      originalTitle: 'Tech',
+      originalTitle: 'Mega-Cap Tech',
     },
     {
-      title: 'Sectors',
+      title: 'Sector ETFs',
       symbols: [
         { s: 'AMEX:XLF', d: 'Financials' },
         { s: 'AMEX:XLE', d: 'Energy' },
@@ -85,14 +85,14 @@ const marketOverviewConfig = {
         { s: 'AMEX:XLV', d: 'Healthcare' },
         { s: 'AMEX:XLI', d: 'Industrials' },
       ],
-      originalTitle: 'Sectors',
+      originalTitle: 'Sector ETFs',
     },
     {
       title: 'Commodities',
       symbols: [
-        { s: 'COMEX:GC1!', d: 'Gold' },
-        { s: 'NYMEX:CL1!', d: 'Crude Oil' },
-        { s: 'COMEX:SI1!', d: 'Silver' },
+        { s: 'TVC:GOLD', d: 'Gold' },
+        { s: 'TVC:USOIL', d: 'Crude Oil WTI' },
+        { s: 'TVC:SILVER', d: 'Silver' },
         { s: 'NYMEX:NG1!', d: 'Natural Gas' },
       ],
       originalTitle: 'Commodities',
